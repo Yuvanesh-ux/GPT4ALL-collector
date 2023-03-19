@@ -1,88 +1,74 @@
 from langchain.prompts import PromptTemplate
 from langchain.llms import OpenAIChat
-from langchain.output_parsers import PydanticOutputParser
-from pydantic import BaseModel, Field
-from typing import List
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+from typing import List, Any
 import json
 import jsonlines
 from tqdm import tqdm
 from loguru import logger
 from timeit import default_timer as timer
-# from concurrent.futures import ProcessPoolExecutor
-# import itertools
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
-# model = OpenAIChat(model_name="gpt-3.5-turbo", openai_api_key="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")
+response_schemas = [
+    ResponseSchema(name="prompt", description="prompt supplied to model"),
+    ResponseSchema(name="response", description="response to supplied prompt")
+]
 
-class Parse_Model(BaseModel):
-    prompt: str = Field(description="prompt supplied to model")
-    response: str = Field(description="response to supplied prompt")
-
-parser = PydanticOutputParser(pydantic_object=Parse_Model)
+output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
+format_instructions = output_parser.get_format_instructions()
 
 prompt_template = PromptTemplate(
     template="Answer the user query.\n{format_instructions}\n{query}\n",
     input_variables=['query'],
-    partial_variables={"format_instructions": parser.get_format_instructions()}
+    partial_variables={"format_instructions": format_instructions}
 )
 
 class Scraper():
     def __init__(self) -> None:
         pass
 
-    def scrape(self, all_prompts: List[dict], openai_api_key: str):
+    def scrape(self, all_prompts: List[dict], openai_api_key: str, model_settings: dict):
+        logger.info("Generating Pairs")
+        model = OpenAIChat(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, model_kwargs=model_settings)
 
-        logger.warning("Scraping Starts")
-        def generate_pairs(prompts, open_api_key):
-            logger.warning("Generating Pairs")
-            model = OpenAIChat(model_name="gpt-3.5-turbo", openai_api_key=open_api_key)
-
-            pairs = []
-            for prompt in tqdm(prompts[:1000]):
+        failed = []
+        with jsonlines.open("output_data/output_2000_3000.jsonl", mode="a") as writer:
+            for prompt in tqdm(all_prompts):
                 _input = prompt_template.format_prompt(query=prompt)
 
                 output = model(_input.to_string())
 
-                # print(parser.parse(output))
-                # try:
-                #     data = json.loads(parser.parse(output).json())
-                #     pairs.append(data)
-                # except:
-                #     logger.warning("Pydantic Validation Failed!")
-
                 try:
-                    pairs.append(json.loads(output))
-                except:
+                    json_data = output_parser.parse(output)
+                    json_data["model_settings"] = model_settings
+                    writer.write(json_data)
+                except (KeyboardInterrupt, ValueError, IndexError):
                     logger.warning("Something went wrong with this prompt! Skipping to next one")
-        
-            return pairs
+                    failed.append(output)
 
-
-        results = generate_pairs(prompts=all_prompts, open_api_key=openai_api_key)
-
-        return results
-
-
+        with jsonlines.open("output_data/failed/failed_outputs.jsonl", mode="w") as writer:
+            for fail in failed:
+                writer.write(fail)
 
 if __name__ == "__main__":
-    start = timer()
-
     scraper = Scraper()
 
     all_data = []
 
-    with jsonlines.open('all_data.jsonl', mode='r') as reader:
-        for idx, datum in enumerate(reader):
-            all_data.append(datum)
+    with jsonlines.open('input_prompts/unified_chip2.jsonl', mode='r') as reader:
+        for datum in reader:
+            start = "<human>: "
+            end = "<bot>:"
+            text = datum["text"]
 
-    openai_api_key = "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"
+            # Extracting the prompt from the existing input/output pairs in the dataset
+            result = text[text.index(start)+len(start):text.index(end)]
 
-    results = scraper.scrape(all_prompts=all_data, openai_api_key=openai_api_key)
-    
-    logger.warning("Writing to disk")
-    with jsonlines.open("output.jsonl", mode="a") as writer:
-        for result in tqdm(results): 
-            writer.write(result)
+            all_data.append(result)
 
-    end = timer()
-    print(end - start)
+    openai_api_key = os.environ['OPENAI_API_KEY']
+
+    scraper.scrape(all_prompts=all_data[2037:3000], openai_api_key=openai_api_key, model_settings={"max_tokens": -1})
