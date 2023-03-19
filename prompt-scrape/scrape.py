@@ -9,6 +9,8 @@ from loguru import logger
 from timeit import default_timer as timer
 from dotenv import load_dotenv
 import os
+import multiprocessing
+import time
 
 load_dotenv()
 
@@ -34,13 +36,12 @@ class Scraper():
         logger.info("Generating Pairs")
         model = OpenAIChat(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, model_kwargs=model_settings)
 
-        failed = []
-        with jsonlines.open("output_data/output_2000_3000.jsonl", mode="a") as writer:
-            for prompt in tqdm(all_prompts):
-                _input = prompt_template.format_prompt(query=prompt)
+        def get_responses(prompt):
+            failed = []
+            _input = prompt_template.format_prompt(query=prompt)
 
-                output = model(_input.to_string())
-
+            output = model(_input.to_string())
+            with jsonlines.open("input_prompts/output_2000_3000.jsonl", mode="a") as writer:
                 try:
                     json_data = output_parser.parse(output)
                     json_data["model_settings"] = model_settings
@@ -49,9 +50,16 @@ class Scraper():
                     logger.warning("Something went wrong with this prompt! Skipping to next one")
                     failed.append(output)
 
-        with jsonlines.open("output_data/failed/failed_outputs.jsonl", mode="w") as writer:
-            for fail in failed:
-                writer.write(fail)
+        
+        for prompt in tqdm(all_prompts):
+            p = multiprocessing.Process(target=get_responses, args=(prompt))
+            p.start()
+            p.join(timeout=15)
+
+            if p.is_alive():
+                logger.warning("Iteration Took too long")
+                p.terminate() # Terminate the process
+                p.join()
 
 if __name__ == "__main__":
     scraper = Scraper()
