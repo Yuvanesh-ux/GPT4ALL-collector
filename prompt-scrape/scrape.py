@@ -28,36 +28,40 @@ prompt_template = PromptTemplate(
     partial_variables={"format_instructions": format_instructions}
 )
 
+model = OpenAIChat(model_name="gpt-3.5-turbo", openai_api_key=os.environ['OPENAI_API_KEY'], model_kwargs={"max_tokens": -1})
+
 class Scraper():
     def __init__(self) -> None:
         pass
 
-    def scrape(self, all_prompts: List[dict], openai_api_key: str, model_settings: dict):
+    def get_responses(self, prompt: str, model_settings: dict = {"max_tokens": -1}):
+        failed = ""
+        _input = prompt_template.format_prompt(query=prompt)
+
+        output = model(_input.to_string())
+        with jsonlines.open("output_data/output_4000_14000.jsonl", mode="a") as writer:
+            try:
+                json_data = output_parser.parse(output)
+                json_data["model_settings"] = model_settings
+                writer.write(json_data)
+            except (KeyboardInterrupt, ValueError, IndexError):
+                logger.warning("Something went wrong with this prompt! Skipping to next one")
+                with jsonlines.open("output_data/failed/fails.jsonl", mode="w") as writer:
+                    writer.write(failed)
+            
+
+    def scrape(self, all_prompts: List[dict]):
         logger.info("Generating Pairs")
-        model = OpenAIChat(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, model_kwargs=model_settings)
-
-        def get_responses(prompt):
-            failed = []
-            _input = prompt_template.format_prompt(query=prompt)
-
-            output = model(_input.to_string())
-            with jsonlines.open("input_prompts/output_2000_3000.jsonl", mode="a") as writer:
-                try:
-                    json_data = output_parser.parse(output)
-                    json_data["model_settings"] = model_settings
-                    writer.write(json_data)
-                except (KeyboardInterrupt, ValueError, IndexError):
-                    logger.warning("Something went wrong with this prompt! Skipping to next one")
-                    failed.append(output)
-
         
         for prompt in tqdm(all_prompts):
-            p = multiprocessing.Process(target=get_responses, args=(prompt))
+            p = multiprocessing.Process(target=self.get_responses, args=(prompt,))
             p.start()
-            p.join(timeout=15)
+            p.join(timeout=30)
 
             if p.is_alive():
                 logger.warning("Iteration Took too long")
+                with jsonlines.open("output_data/failed/fails.jsonl", mode="a") as writer:
+                    writer.write(prompt)
                 p.terminate() # Terminate the process
                 p.join()
 
@@ -79,4 +83,4 @@ if __name__ == "__main__":
 
     openai_api_key = os.environ['OPENAI_API_KEY']
 
-    scraper.scrape(all_prompts=all_data[2037:3000], openai_api_key=openai_api_key, model_settings={"max_tokens": -1})
+    scraper.scrape(all_prompts=all_data[4000:14000])
