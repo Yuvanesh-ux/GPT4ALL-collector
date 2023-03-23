@@ -6,7 +6,6 @@ import json
 import jsonlines
 from tqdm import tqdm
 from loguru import logger
-from timeit import default_timer as timer
 from dotenv import load_dotenv
 import os
 import concurrent
