@@ -12,6 +12,7 @@ import os
 import concurrent
 import concurrent.futures
 import multiprocessing
+import random
 
 
 load_dotenv()
@@ -41,19 +42,21 @@ class Scraper():
             
     def get_responses(self, all_prompts: List[dict], i: int, model_settings: dict = {"max_tokens": -1}):
             prompts = all_prompts[i: i + shard_size]
-            model = OpenAIChat(model_name="gpt-3.5-turbo", openai_api_key=openai_api_keys[i%10], model_kwargs={"max_tokens": -1})
+            model = OpenAIChat(model_name="gpt-3.5-turbo", openai_api_key=openai_api_keys[random.randint(0,len(openai_api_keys)-1)], model_kwargs={"max_tokens": -1})
             for prompt in tqdm(prompts):
                 _input = prompt_template.format_prompt(query=prompt)
 
-                output = model(_input.to_string())
-                with jsonlines.open("output_data/output_4000_x.jsonl", mode="a") as writer:
+                # print(_input)
+                output = model(prompt)
+                with jsonlines.open("output_data/output_200-000_250-000.jsonl", mode="a") as writer:
                     try:
-                        json_data = output_parser.parse(output)
+                        json_data = {"prompt": prompt, "response": output}
                         json_data["model_settings"] = model_settings
+                        json_data["source"] = "bigscience/p3"
                         writer.write(json_data)
                     except (KeyboardInterrupt, ValueError, IndexError):
                         logger.warning("Something went wrong with this prompt! Skipping to next one")
-                        with jsonlines.open("output_data/failed/fails.jsonl", mode="w") as writer:
+                        with jsonlines.open("output_data/failed/fails.jsonl", mode="a") as writer:
                             writer.write(prompt)
 
     def scrape(self, all_prompts: List[dict]):
@@ -76,15 +79,10 @@ if __name__ == "__main__":
 
     all_data = []
 
-    with jsonlines.open('input_prompts/unified_chip2.jsonl', mode='r') as reader:
+    with jsonlines.open('input_prompts/all_data.jsonl', mode='r') as reader:
         for datum in reader:
-            start = "<human>: "
-            end = "<bot>:"
-            text = datum["text"]
+            # datum = datum.replace("\n", "")
 
-            # Extracting the prompt from the existing input/output pairs in the dataset
-            result = text[text.index(start)+len(start):text.index(end)]
+            all_data.append(datum)
 
-            all_data.append(result)
-
-    scraper.scrape(all_prompts=all_data[35000:55000])
+    scraper.scrape(all_prompts=all_data[0:10])
