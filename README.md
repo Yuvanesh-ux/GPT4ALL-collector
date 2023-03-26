@@ -1,12 +1,9 @@
-<center>
 
-# prompt-scrape
-
-</center>
+<h1 align="center"> prompt-scrape </h1>
 
 <center>
 
-## prompt-scrape allows you to mass scrape the ChatGPT API, allowing for input/output pairs in the millions to finetune your own model for conversational use, allowing the opensourcing of datasets and models alike (unlike what a certain inudstry leader is doing.)
+<p> prompt-scrape allows you to mass scrape the ChatGPT API, allowing for input/output pairs in the millions to finetune your own model for conversational use, allowing the opensourcing of datasets and models alike (unlike what a certain inudstry leader is doing.) <p>
 
 </center>
 
