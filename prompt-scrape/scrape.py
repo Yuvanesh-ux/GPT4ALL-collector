@@ -72,4 +72,6 @@ if __name__ == "__main__":
             print(datum)
             all_data.append(datum["prompt"])
 
+
     scraper.scrape(all_prompts=all_data[0:10])
+
