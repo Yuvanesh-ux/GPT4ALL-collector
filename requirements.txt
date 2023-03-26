@@ -1,0 +1,5 @@
+langchain
+openai
+jsonlines
+python-dotenv
+tqdm
