@@ -1,9 +1,9 @@
 
-<h1 align="center"> prompt-scrape </h1>
+<h1 align="center"> GPT4ALL-scrape </h1>
 
 <center>
 
-<p> prompt-scrape allows you to mass scrape the ChatGPT API, allowing for input/output pairs in the millions to finetune your own model for conversational use, allowing the opensourcing of datasets and models alike (unlike what a certain inudstry leader is doing.) <p>
+<p> GPT4ALL-scrape allows you to mass scrape the ChatGPT API, allowing for input/output pairs in the millions to finetune your own model for conversational use, allowing the opensourcing of datasets and models alike (unlike what a certain inudstry leader is doing.) <p>
 
 </center>
 
@@ -17,7 +17,7 @@
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/yuvanesh-ux/prompt-scrape.git`
+1. Clone the repository: `git clone https://github.com/yuvanesh-ux/GPT4ALL-scrape.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
 
 
