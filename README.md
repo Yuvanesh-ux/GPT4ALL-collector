@@ -1,5 +1,5 @@
 
-<h1 align="center"> GPT4ALL-scrape </h1>
+<h1 align="center"> GPT4ALL-collector </h1>
 
 <center>
 
