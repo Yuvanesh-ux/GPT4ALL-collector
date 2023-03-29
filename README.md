@@ -3,7 +3,7 @@
 
 <center>
 
-<p> GPT4ALL-scrape allows you to mass collect the ChatGPT API, allowing for input/output pairs in the millions to finetune your own model for conversational use, allowing the opensourcing of datasets and models alike (unlike what a certain inudstry leader is doing.) <p>
+<p> GPT4ALL-collector allows you to mass collect the ChatGPT API, allowing for input/output pairs in the millions to finetune your own model for conversational use, allowing the opensourcing of datasets and models alike (unlike what a certain inudstry leader is doing.) <p>
 
 </center>
 
@@ -17,7 +17,7 @@
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/Yuvanesh-ux/GPT4ALL-collect.git`
+1. Clone the repository: `git clone https://github.com/Yuvanesh-ux/GPT4ALL-collector.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
 
 
