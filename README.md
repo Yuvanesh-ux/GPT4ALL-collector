@@ -17,7 +17,7 @@
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/yuvanesh-ux/GPT4ALL-scrape.git`
+1. Clone the repository: `git clone https://github.com/Yuvanesh-ux/GPT4ALL-scrape.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
 
 
