@@ -24,7 +24,7 @@
 ## Usage
 
 1. Navigate to the prompt-scrape directory.
-2. Create your own file with input prompts. The input prompts should be saved in JSONL format.
+2. Create your own file with input prompts. Any file format that can be read into a list of dictionaries works, `.JSONL` works the best
 3. Set the OpenAI API keys in your environment variables. You can also modify the openai_api_keys parameter in `Scraper()` to pass the keys as a list.
 4. Run `python scrape.py`
 5. The script will generate output JSONL files containing the prompt and response pairs, along with the model settings and source. The output files will be saved in the specified output path. Note that the output files will be appended if the path already exists.
