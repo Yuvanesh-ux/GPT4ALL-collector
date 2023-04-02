@@ -1,3 +1,4 @@
+import argparse
 import concurrent
 import concurrent.futures
 import os
@@ -28,7 +29,8 @@ class Conversation:
 
         Args:
             self: An instance of the class that this method belongs to.
-            all_prompts (List[str]): A list of prompts to generate responses to.
+            all_prompts (List[dict]): A list of prompts as dictionary objects to generate responses to. Each dictionary object should
+            contain the 'prompt' key with a string value representing the prompt.
             i (int): An integer representing the starting index of the prompts to use in the all_prompts list.
             output_path (str, optional): The path to the file to write the generated responses to. Defaults to an empty string.
             source (str, optional): A string representing the source of the prompts. Defaults to an empty string.
@@ -38,7 +40,7 @@ class Conversation:
             Any exceptions thrown by the OpenAIChat model.
 
         """
-        prompts = all_prompts[i : i + shard_size]
+        prompts = [d['prompt'] for d in all_prompts[i : i + shard_size]]
         model = OpenAIChat(
             model_name="gpt-3.5-turbo",
             openai_api_key=self.openai_api_keys[random.randint(0, len(self.openai_api_keys) - 1)],
@@ -63,7 +65,7 @@ class Conversation:
                     writer.write(json_data)
                 except:
                     logger.warning("something went wrong! next")
-                    with jsonlines.open(f"{output_path}/fails.jsonl", mode="a") as writer:
+                    with jsonlines.open(f"{output_path}_fails.jsonl", mode="a") as writer:
                         writer.write(prompt)
 
     def conversation_collector(self, 
@@ -101,3 +103,30 @@ class Conversation:
                     logger.exception(f"Error processing prompt: {e}")
 
                 progress.update(1)
+
+if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file", help="Input file name")
+    parser.add_argument("output_file", help="Output file name")
+    parser.add_argument("-k", "--openai_api_key", help="OpenAI API key")
+    args = parser.parse_args()
+
+    # Get the OpenAI API key
+    openai_api_key = args.openai_api_key or os.environ.get("OPENAI_API_KEY")
+
+    # Create a Conversation instance
+    conversation = Conversation(openai_api_keys=[openai_api_key])
+
+    # Read the input prompts
+    all_data = []
+    with jsonlines.open(args.input_file, mode="r") as reader:
+        for datum in reader:
+            prompt = datum['prompt']
+            all_data.append({"prompt": prompt})
+
+    # Scrape the prompts
+    conversation.conversation_collector(
+        all_prompts=all_data,
+        output_path=args.output_file
+    )
