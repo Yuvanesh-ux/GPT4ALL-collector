@@ -35,7 +35,7 @@ class Scraper:
             output = model(prompt)
             with jsonlines.open(os.path.join(output_path, "output.jsonl"), mode="a") as writer:
                 try:
-                    json_data = {"prompt": prompt, "response": output, "model_settings": model_settings, "source": 'laion/oib'}
+                    json_data = {"prompt": prompt, "response": output, "model_settings": model_settings, "source": source}
                     writer.write(json_data)
                 except (KeyboardInterrupt, ValueError, IndexError):
                     logger.warning("Something went wrong with this prompt! Skipping to next one")
@@ -62,19 +62,3 @@ class Scraper:
                     logger.exception(f"Error processing prompt: {e}")
 
                 progress.update(1)
-
-
-if __name__ == "__main__":
-    scraper = Scraper(openai_api_keys=[os.environ[f"OPENAI_API_KEY{i}"] for i in range(6, 21)])
-
-    all_data = []
-
-    with jsonlines.open("input_prompts/all_data.jsonl", mode="r") as reader:
-        for datum in reader:
-            # datum = datum.replace("\n", "")
-            print(datum)
-            all_data.append(datum)
-
-
-    scraper.scrape(all_prompts=all_data[0:10])
-
