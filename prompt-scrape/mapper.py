@@ -81,19 +81,20 @@ def multi_sum():
     file_name = 'multi_sum'
     documents = []
     with jsonlines.open(os.path.join("input_prompts", f"unified_{file_name}.jsonl"), mode='r') as reader:
-        for idx, item in enumerate(reader):
-            if idx < 10_000:
-                json = {}
-                # Extract each section between <human> and <bot>
-                result = re.search(r'(?<=<human>:).*?(?=<bot>)', item["text"], re.DOTALL)
+        for idx, item in tqdm(enumerate(reader)):
+            json = {}
+            # Extract each section between <human> and <bot>
+            sections = re.findall(r'<human>:(.*?)<bot>', item['text'], flags=re.DOTALL)
 
-                json[f"turn_0_question"] = result.group(0).strip()
-                documents.append(json)
+            # print(len(sections))
+            for idx, section in enumerate(sections):
+                json[f"turn_{idx}_question"] = section.strip()
+            documents.append(json)
     
     atlas.map_text(
         data=documents,
         indexed_field='turn_0_question',
-        name=f"{file_name} v4 prompts",
+        name=f"{file_name} v5 prompts",
         description=f'{file_name} map exploration',
         # shard_size=100,
         # organization_name="GPT4ALL"
