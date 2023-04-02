@@ -13,7 +13,7 @@ from tqdm import tqdm
 load_dotenv()
 
 class Scraper:
-    def __init__(self, openai_api_keys: List[str]) -> None:
+    def __init__(self, openai_api_keys: List[str]):
         self.openai_api_keys = openai_api_keys
 
     def get_responses(
@@ -25,24 +25,39 @@ class Scraper:
         output_path: str = '',
         source: str = ''
     ):
+        """A method that generates responses to a list of prompts using OpenAI's GPT-3.5-turbo model and writes the output to a file.
+
+        Args:
+            all_prompts (List[dict]): A list of prompts as dictionary objects to generate responses to. Each dictionary object should
+            contain the 'text' key with a string value representing the prompt.
+            i (int): An integer representing the starting index of the prompts to use in the all_prompts list.
+            shard_size (int): An integer representing the number of prompts to generate responses for in each iteration.
+            model_settings (dict, optional): A dictionary of settings to pass to the OpenAIChat model. Defaults to {"max_tokens": -1}.
+            output_path (str, optional): The path to the directory to write the generated responses to. Defaults to an empty string.
+            source (str, optional): A string representing the source of the prompts. Defaults to an empty string.
+
+        Raises:
+            Any exceptions thrown by the OpenAIChat model or jsonlines module.
+
+        """
         prompts = all_prompts[i : i + shard_size]
         model = OpenAIChat(
             model_name="gpt-3.5-turbo",
             openai_api_key=self.openai_api_keys[random.randint(0, len(self.openai_api_keys) - 1)],
-            model_kwargs={"max_tokens": -1},
+            model_kwargs={"max_tokens": -1}, # -1 specifies we want the maximum number of tokens that can be generated
         )
         for prompt in tqdm(prompts):
             output = model(prompt)
             with jsonlines.open(os.path.join(output_path, "output.jsonl"), mode="a") as writer:
                 try:
-                    json_data = {"prompt": prompt, "response": output, "model_settings": model_settings, "source": 'laion/oib'}
+                    json_data = {"prompt": prompt, "response": output, "model_settings": model_settings, "source": source}
                     writer.write(json_data)
                 except (KeyboardInterrupt, ValueError, IndexError):
                     logger.warning("Something went wrong with this prompt! Skipping to next one")
                     with jsonlines.open(os.path.join(output_path, "fails.jsonl"), mode="a") as writer:
                         writer.write(prompt)
 
-    def scrape(self, 
+    def collector(self, 
         all_prompts: List[dict],
         num_workers: int = 10,
         shard_size: int = 200,
@@ -62,19 +77,3 @@ class Scraper:
                     logger.exception(f"Error processing prompt: {e}")
 
                 progress.update(1)
-
-
-if __name__ == "__main__":
-    scraper = Scraper(openai_api_keys=[os.environ[f"OPENAI_API_KEY{i}"] for i in range(6, 21)])
-
-    all_data = []
-
-    with jsonlines.open("input_prompts/all_data.jsonl", mode="r") as reader:
-        for datum in reader:
-            # datum = datum.replace("\n", "")
-            print(datum)
-            all_data.append(datum)
-
-
-    scraper.scrape(all_prompts=all_data[0:10])
-
