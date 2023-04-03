@@ -23,6 +23,9 @@
 
 ## Usage
 
+This is an example of how you'd use the scraper on a jsonl file from the
+OIG project for instance - https://huggingface.co/datasets/laion/OIG/tree/main
+
 1. Navigate to the prompt-scrape directory.
 2. Create your own file with input prompts. Here is an example of an input file that will work out of the box with the scraper.py without modification:
 
@@ -31,8 +34,14 @@
 {"prompt": "Can you write me a poem about wallace stevens and alfred a. knopf?", "source": "OIG - unified_poetry_instructions.jsonl"}
 {"prompt": "Can you write me a poem about time?", "source": "OIG - unified_poetry_instructions.jsonl"}
 ```
-
 Other file formats will require either conversion to this format or modifications to scraper.py to accomodate your own custom format.
+
+  * To create such a file from an OIG jsonl file you can run:
+  `python convert_oig_to_scraper_input.py /path/to/OIG/file.jsonl /path/to/output_file.jsonl`
+
+  * If you are running the scraper on an OIG file you should first map the data with atlas to see if the data is of sufficient quality like this:
+  `python atlas_mapper.py /path/to/output_file.jsonl`
+  where the output file here is what was created in the previous step.
 
 3. Run `python scrape.py -k <OPENAI_API_KEY> /path/to/your/input_file.jsonl /path/to/your/output_file.jsonl`
 4. You can also set your OpenAI API keys to OPENAI_API_KEY environment variable.
