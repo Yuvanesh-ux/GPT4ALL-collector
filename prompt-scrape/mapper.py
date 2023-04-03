@@ -3,6 +3,7 @@ import jsonlines
 import os
 import re
 from tqdm import tqdm
+import numpy as np
 
 def abstract_infill():
 # abstract_infill
@@ -80,8 +81,19 @@ def multi_news():
 def multi_sum():
     file_name = 'multi_sum'
     documents = []
+    set = []
     with jsonlines.open(os.path.join("input_prompts", f"unified_{file_name}.jsonl"), mode='r') as reader:
         for idx, item in tqdm(enumerate(reader)):
+            if idx > 944933:
+                set.append(item)
+
+    # np.random.seed(0)
+    # max_documents = 250_000
+    # subset_idxs = np.random.choice(len(set), size=max_documents, replace=False).tolist()
+    # set = [set[i] for i in subset_idxs]
+
+    with jsonlines.open("checkpoint.jsonl", mode='a') as writer:
+        for idx, item in tqdm(enumerate(set)):
             json = {}
             # Extract each section between <human> and <bot>
             sections = re.findall(r'<human>:(.*?)<bot>', item['text'], flags=re.DOTALL)
@@ -89,12 +101,14 @@ def multi_sum():
             # print(len(sections))
             for idx, section in enumerate(sections):
                 json[f"turn_{idx}_question"] = section.strip()
+            
+            writer.write(json)
             documents.append(json)
     
     atlas.map_text(
         data=documents,
         indexed_field='turn_0_question',
-        name=f"{file_name} v5 prompts",
+        name=f"{file_name} v7 prompts",
         description=f'{file_name} map exploration',
         # shard_size=100,
         # organization_name="GPT4ALL"
