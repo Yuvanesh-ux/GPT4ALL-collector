@@ -23,11 +23,29 @@
 
 ## Usage
 
+This is an example of how you'd use the scraper on a jsonl file from the
+OIG project for instance - https://huggingface.co/datasets/laion/OIG/tree/main
+
 1. Navigate to the prompt-scrape directory.
-2. Create your own file with input prompts. Any file format that can be read into a list of dictionaries works, `.JSONL` works the best
-3. Set the OpenAI API keys in your environment variables. You can also modify the openai_api_keys parameter in `Scraper()` to pass the keys as a list.
-4. Run `python scrape.py`
-5. The script will generate output JSONL files containing the prompt and response pairs, along with the model settings and source. The output files will be saved in the specified output path. Note that the output files will be appended if the path already exists.
+2. Create your own file with input prompts. Here is an example of an input file that will work out of the box with the scraper.py without modification:
+
+```
+{"prompt": "Can you write me a poem about kenneth fearing, aphrodite and jubal fearing in the style of KENNETH FEARING?", "source": "OIG - unified_poetry_instructions.jsonl"}
+{"prompt": "Can you write me a poem about wallace stevens and alfred a. knopf?", "source": "OIG - unified_poetry_instructions.jsonl"}
+{"prompt": "Can you write me a poem about time?", "source": "OIG - unified_poetry_instructions.jsonl"}
+```
+Other file formats will require either conversion to this format or modifications to scraper.py to accomodate your own custom format.
+
+  * To create such a file from an OIG jsonl file you can run:
+  `python convert_oig_to_scraper_input.py /path/to/OIG/file.jsonl /path/to/output_file.jsonl`
+
+  * If you are running the scraper on an OIG file you should first map the data with atlas to see if the data is of sufficient quality like this:
+  `python atlas_mapper.py /path/to/output_file.jsonl`
+  where the output file here is what was created in the previous step.
+
+3. Run `python scrape.py -k <OPENAI_API_KEY> /path/to/your/input_file.jsonl /path/to/your/output_file.jsonl`
+4. You can also set your OpenAI API keys to OPENAI_API_KEY environment variable.
+5. The script will generate output a JSON file containing the prompt and response pairs, along with the model settings and source. Note that the output files will be appended if the path already exists.
 6. You can modify the num_workers and shard_size parameters in `scrape()` to change the number of workers and the number of prompts processed per worker, respectively.
 
 Note: You will need a ChatGPT API key(s) to use this tool. You can obtain a key from the OpenAI website.
