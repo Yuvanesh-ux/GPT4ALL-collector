@@ -63,8 +63,6 @@ class Conversation:
                     writer.write(json_data)
                 except:
                     logger.warning("something went wrong! next")
-                    with jsonlines.open(f"{output_path}/fails.jsonl", mode="a") as writer:
-                        writer.write(prompt)
 
     def conversation_collector(self, 
         all_prompts: List[str],
@@ -103,11 +101,13 @@ class Conversation:
                 progress.update(1)
 
 if __name__ == "__main__":
-    conversation = Conversation(os.environ['OPENAI_API_KEY'])
+    conversation = Conversation([os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, 26)])
 
     documents = []
-    with jsonlines.open('input_prompts/unified_abstract_infill_cleaned.jsonl', mode='r') as reader:
+    with jsonlines.open('input_prompts/unified_multi_news_cleaned.jsonl', mode='r') as reader:
         for item in reader:
-            documents.append(item)
+            documents.append(item["turn_0_question"])
+    
+    conversation.conversation_collector(all_prompts=documents[5:10], output_path='/mnt/efs/data/prompt-scrape-run-v2/unified_multi_news_output-0-50_000.jsonl', source='unified_multi_news')
 
     

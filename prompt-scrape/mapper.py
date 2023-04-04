@@ -70,10 +70,11 @@ def multi_news():
     #         if f"turn_{i}_question" not in doc:
     #             doc[f"turn_{i}_question"] = ""
 
-    # with jsonlines.open("thing.jsonl", mode="a") as writer:
-    #     for doc in tqdm(documents):
-    #         writer.write(doc)
-
+    with jsonlines.open("input_prompts/unified_multi_news_clean.jsonl", mode="a") as writer:
+        for doc in tqdm(documents):
+            writer.write(doc)
+    
+    exit()
     # map explorer
     atlas.map_text(
         data=documents,
@@ -132,4 +133,25 @@ def multi_sum():
                 data=chunk
             )
     
-abstract_infill()
+def hello_simple_hc3():
+    documents =[]
+    file_name = 'all'
+    with jsonlines.open(os.path.join("input_prompts", f"{file_name}.jsonl"), mode='r') as reader:
+        for idx, item in enumerate(reader):
+            if idx:
+                json = {}
+                try:
+                    # Extract each section between <human> and <bot>
+                    json["turn_0_question"] = item["question"]
+                    json["turn_0_answer"] = item["chatgpt_answers"][0]
+                    documents.append(json)
+                except:
+                    print("failed")
+
+    atlas.map_text(
+        data=documents,
+        indexed_field='turn_0_answer',
+        name="hello-simple/hc3 v1",
+    )
+
+hello_simple_hc3()
