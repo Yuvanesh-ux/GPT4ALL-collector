@@ -4,6 +4,12 @@ import concurrent.futures
 import os
 import random
 from typing import List
+import queue
+import threading
+
+threads_to_start = 10 # or choose how many you want
+my_queue = queue.Queue()
+
 
 import jsonlines
 from dotenv import load_dotenv
@@ -24,7 +30,8 @@ class Scraper:
         shard_size: int,
         model_settings: dict = {"max_tokens": -1},
         output_path: str = '',
-        source: str = ''
+        source: str = '',
+        progress = None
     ):
         """A method that generates responses to a list of prompts using OpenAI's GPT-3.5-turbo model and writes the output to a file.
 
@@ -47,7 +54,7 @@ class Scraper:
             openai_api_key=self.openai_api_keys[random.randint(0, len(self.openai_api_keys) - 1)],
             model_kwargs={"max_tokens": -1}, # -1 specifies we want the maximum number of tokens that can be generated
         )
-        for prompt in tqdm(prompts):
+        for prompt in prompts:
             output = model(prompt)
             with jsonlines.open(output_path, mode="a") as writer:
                 try:
@@ -57,6 +64,12 @@ class Scraper:
                     logger.warning("Something went wrong with this prompt! Skipping to next one")
                     with jsonlines.open(output_path + "_fails.jsonl", mode="a") as writer:
                         writer.write(prompt)
+            progress.update(1)
+    def worker(self,progress):
+        while not my_queue.empty():
+            d = my_queue.get()
+            self.get_responses(i=d[0], all_prompts=d[1], shard_size=d[2], output_path=d[3], source=d[4],progress=progress)
+            my_queue.task_done()
 
     def collector(self, 
         all_prompts: List[dict],
@@ -67,18 +80,13 @@ class Scraper:
     ):
         logger.info("Generating Pairs")
 
-        progress = tqdm(total=len(all_prompts) // shard_size)
-        with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers) as executor:
-            futures = [executor.submit(self.get_responses, i=i, all_prompts=all_prompts, shard_size=shard_size, output_path=output_path, source=source) for i in range(0, len(all_prompts), shard_size)]
-
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    future.result()
-                except Exception as e:
-                    logger.exception(f"Error processing prompt: {e}")
-
-                progress.update(1)
-
+        progress = tqdm(total=len(all_prompts))        for i in range(0, len(all_prompts), shard_size):
+               my_queue.put([i, all_prompts, shard_size, output_path, source])
+        for i in range(threads_to_start):
+                t = threading.Thread(target=self.worker, daemon=True, args=[progress]) 
+                t.start()
+        my_queue.join()
+         
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser()
@@ -88,7 +96,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Get the OpenAI API key
-    openai_api_key = args.openai_api_key or os.environ.get("OPENAI_API_KEY")
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
 
     # Create a Scraper instance
     scraper = Scraper(openai_api_keys=[openai_api_key])
