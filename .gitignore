@@ -1,1 +1,4 @@
 .env
+output_data/
+input_prompts/
+venv/

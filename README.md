@@ -19,15 +19,14 @@
 
 1. Clone the repository: `git clone https://github.com/Yuvanesh-ux/GPT4ALL-collector.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
-
+3. python 3.8 is recomended but not needed, anything over 3.6 can be used
 
 ## Usage
 
 This is an example of how you'd use the scraper on a jsonl file from the
 OIG project for instance - https://huggingface.co/datasets/laion/OIG/tree/main
 
-1. Navigate to the prompt-scrape directory.
-2. Create your own file with input prompts. Here is an example of an input file that will work out of the box with the scraper.py without modification:
+1. Create your own file with input prompts. Here is an example of an input file that will work out of the box with the scraper.py without modification:
 
 ```
 {"prompt": "Can you write me a poem about kenneth fearing, aphrodite and jubal fearing in the style of KENNETH FEARING?", "source": "OIG - unified_poetry_instructions.jsonl"}
@@ -43,12 +42,15 @@ Other file formats will require either conversion to this format or modification
   `python atlas_mapper.py /path/to/output_file.jsonl`
   where the output file here is what was created in the previous step.
 
-3. Run `python scrape.py -k <OPENAI_API_KEY> /path/to/your/input_file.jsonl /path/to/your/output_file.jsonl`
-4. You can also set your OpenAI API keys to OPENAI_API_KEY environment variable.
-5. The script will generate output a JSON file containing the prompt and response pairs, along with the model settings and source. Note that the output files will be appended if the path already exists.
-6. You can modify the num_workers and shard_size parameters in `scrape()` to change the number of workers and the number of prompts processed per worker, respectively.
+2. clean up file by removing markdown, html and duplacates
+4. Run `python scrape.py -k <OPENAI_API_KEY> /path/to/your/input_file.jsonl /path/to/your/output_file.jsonl`
+5. You can also set your OpenAI API keys to OPENAI_API_KEY environment variable. (RECOMENDED)
+6. The script will generate output a JSONL file containing the prompt and response pairs, along with the model settings and source. Note that the output files will be appended if the path already exists.
+7. You can modify the num_workers and shard_size parameters in `scrape()` to change the number of workers and the number of prompts processed per worker, respectively.
 
-Note: You will need a ChatGPT API key(s) to use this tool. You can obtain a key from the OpenAI website.
+Note: You will need a ChatGPT API key(s) and credit to use this tool. You can obtain a key from the OpenAI website.
+
+
 
 
 ## Contributing

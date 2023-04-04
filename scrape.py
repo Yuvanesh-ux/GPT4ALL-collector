@@ -7,7 +7,7 @@ from typing import List
 import queue
 import threading
 
-threads_to_start = 10 # or choose how many you want
+threads_to_start = 20 # or choose how many you want
 my_queue = queue.Queue()
 
 
@@ -75,7 +75,7 @@ class Scraper:
     def collector(self, 
         all_prompts: List[dict],
         num_workers: int = 10,
-        shard_size: int = 200,
+        shard_size: int = 50,
         output_path: str = '',
         source: str = ''
     ):
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     elif args.open_api_key:
         openai_api_key = args.open_api_key
     else:
-        print("You need an api key!)
+        print("You need an api key!")
         exit()
     # Create a Scraper instance
     scraper = Scraper(openai_api_keys=[openai_api_key])
