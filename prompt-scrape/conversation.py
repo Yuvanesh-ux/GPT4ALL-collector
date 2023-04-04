@@ -101,3 +101,13 @@ class Conversation:
                     logger.exception(f"Error processing prompt: {e}")
 
                 progress.update(1)
+
+if __name__ == "__main__":
+    conversation = Conversation(os.environ['OPENAI_API_KEY'])
+
+    documents = []
+    with jsonlines.open('input_prompts/unified_abstract_infill_cleaned.jsonl', mode='r') as reader:
+        for item in reader:
+            documents.append(item)
+
+    
