@@ -66,7 +66,8 @@ class Scraper:
                     with jsonlines.open(output_path + "_fails.jsonl", mode="a") as writer:
                         writer.write(prompt)
             progress.update(1)
-    def worker(self,progress):
+
+    def worker(self,progress):
         while not my_queue.empty():
             d = my_queue.get()
             self.get_responses(i=d[0], all_prompts=d[1], shard_size=d[2], output_path=d[3], source=d[4],progress=progress)
@@ -81,7 +82,8 @@ class Scraper:
     ):
         logger.info("Generating Pairs")
 
-        progress = tqdm(total=len(all_prompts))        for i in range(0, len(all_prompts), shard_size):
+        progress = tqdm(total=len(all_prompts))
+        for i in range(0, len(all_prompts), shard_size):
                my_queue.put([i, all_prompts, shard_size, output_path, source])
         for i in range(threads_to_start):
                 t = threading.Thread(target=self.worker, daemon=True, args=[progress]) 
@@ -97,8 +99,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Get the OpenAI API key
-    openai_api_key = os.environ.get("OPENAI_API_KEY")
-
+    
+    if os.environ.get("OPENAI_API_KEY"):
+        openai_api_key = os.environ.get("OPENAI_API_KEY")
+    elif args.open_api_key:
+        openai_api_key = args.open_api_key
+    else:
+        print("You need an api key!)
+        exit()
     # Create a Scraper instance
     scraper = Scraper(openai_api_keys=[openai_api_key])
 
