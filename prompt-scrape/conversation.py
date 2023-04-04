@@ -5,7 +5,6 @@ import os
 import random
 from typing import List
 
-import json
 import jsonlines
 from dotenv import load_dotenv
 from langchain.llms import OpenAIChat
@@ -121,16 +120,10 @@ if __name__ == "__main__":
 
     # Read the input prompts
     all_data = []
-    with open(args.input_file, mode="r", encoding="latin-1") as f:
-        data = f.read()
-        
-        for idx, line in enumerate(data.split('\n')):
-            try:
-                datum = json.loads(line.strip())
-                prompt = datum['prompt']
-                all_data.append({"prompt": prompt})
-            except:
-                print(f"Line {idx + 1} failed")
+    with jsonlines.open(args.input_file, mode="r") as reader:
+        for datum in reader:
+            prompt = datum['prompt']
+            all_data.append({"prompt": prompt})
 
     # Scrape the prompts
     conversation.conversation_collector(
