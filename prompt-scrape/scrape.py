@@ -48,9 +48,9 @@ class Scraper:
         )
         for prompt in tqdm(prompts):
             output = model(prompt)
-            with jsonlines.open(os.path.join(output_path, "output.jsonl"), mode="a") as writer:
+            with jsonlines.open(output_path, mode="a") as writer:
                 try:
-                    json_data = {"prompt": prompt, "response": output, "model_settings": model_settings, "source": source}
+                    json_data = {"turn_0_question": prompt, "turn_0_answer": output, "model_settings": model_settings, "source": source}
                     writer.write(json_data)
                 except (KeyboardInterrupt, ValueError, IndexError):
                     logger.warning("Something went wrong with this prompt! Skipping to next one")
@@ -77,3 +77,14 @@ class Scraper:
                     logger.exception(f"Error processing prompt: {e}")
 
                 progress.update(1)
+
+if __name__ == "__main__":
+    scraper = Scraper([os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, 26)])
+
+    documents = []
+    with jsonlines.open('input_prompts/multi_sum_random_chunk_1.jsonl', mode='r') as reader:
+        for item in reader:
+            documents.append(item["turn_0_question"])
+    
+    cloud_path = '/mnt/efs/data/prompt-scrape-run-v2/output-multi_sum.jsonl'
+    scraper.collector(all_prompts=documents[0:5], output_path='output_data/test_2.jsonl', source='unified_multi_sum')

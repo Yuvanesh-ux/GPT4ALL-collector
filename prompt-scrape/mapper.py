@@ -4,6 +4,7 @@ import os
 import re
 from tqdm import tqdm
 import numpy as np
+import glob
 
 def abstract_infill():
 # abstract_infill
@@ -86,52 +87,52 @@ def multi_news():
     )
 
 def multi_sum():
-    file_name = 'multi_sum'
-    documents = []
     set = []
-    # with jsonlines.open(os.path.join("input_prompts", f"unified_{file_name}.jsonl"), mode='r') as reader:
-    #     for idx, item in tqdm(enumerate(reader)):
-    #         set.append(item)
+    os.chdir("E://")
+    print(os.getcwd())
+    with jsonlines.open("vault/unified_multi_sum.jsonl", mode='r') as reader:
+        for idx, item in tqdm(enumerate(reader)):
+            set.append(item)
 
-    # # np.random.seed(0)
-    # # max_documents = 250_000
-    # # subset_idxs = np.random.choice(len(set), size=max_documents, replace=False).tolist()
-    # # set = [set[i] for i in subset_idxs]
+    np.random.seed(0)
+    max_documents = 100_000
+    subset_idxs = np.random.choice(len(set), size=max_documents, replace=False).tolist()
+    set = [set[i] for i in subset_idxs]
 
-    # with jsonlines.open("checkpoint.jsonl", mode='a') as writer:
-    #     for idx, item in tqdm(enumerate(set)):
-    #         json = {}
-    #         # Extract each section between <human> and <bot>
-    #         sections = re.findall(r'<human>:(.*?)<bot>', item['text'], flags=re.DOTALL)
+    os.chdir("C://Users/pilot/Documents/Github/prompt-scrape/prompt-scrape")
+    with jsonlines.open("input_prompts/multi_sum_random_chunk_1.jsonl", mode='a') as writer:
+        for idx, item in tqdm(enumerate(set)):
+            json = {}
+            # Extract each section between <human> and <bot>
+            sections = re.findall(r'<human>:(.*?)<bot>', item['text'], flags=re.DOTALL)
 
-    #         # print(len(sections))
-    #         for idx, section in enumerate(sections):
-    #             json[f"turn_{idx}_question"] = section.strip()
+            # print(len(sections))
+            for idx, section in enumerate(sections):
+                json[f"turn_{idx}_question"] = section.strip()
             
-    #         writer.write(json)
-    #         documents.append(json)
+            writer.write(json)
 
-    with jsonlines.open("checkpoint.jsonl", mode="r") as reader:
-        for item in tqdm(reader):
-            documents.append(item)
+    # with jsonlines.open("checkpoint.jsonl", mode="r") as reader:
+    #     for item in tqdm(reader):
+    #         documents.append(item)
     
-    n = 100_000
-    chunks = [documents[i:i + n] for i in range(0, len(documents), n)]
-    for idx, chunk in enumerate(chunks):
-        if idx == 0:
-            project = atlas.map_text(
-                        data=chunk,
-                        indexed_field='turn_0_question',
-                        name=f"{file_name} v9 prompts",
-                        description=f'{file_name} map exploration',
-                        # shard_size=100,
-                        # organization_name="GPT4ALL"
-                    )
+    # n = 100_000
+    # chunks = [documents[i:i + n] for i in range(0, len(documents), n)]
+    # for idx, chunk in enumerate(chunks):
+    #     if idx == 0:
+    #         project = atlas.map_text(
+    #                     data=chunk,
+    #                     indexed_field='turn_0_question',
+    #                     name=f"{file_name} v9 prompts",
+    #                     description=f'{file_name} map exploration',
+    #                     # shard_size=100,
+    #                     # organization_name="GPT4ALL"
+    #                 )
         
-        with project.wait_for_project_lock():
-            project.add_text(
-                data=chunk
-            )
+    #     with project.wait_for_project_lock():
+    #         project.add_text(
+    #             data=chunk
+    #         )
     
 def hello_simple_hc3():
     documents =[]
@@ -154,4 +155,87 @@ def hello_simple_hc3():
         name="hello-simple/hc3 v1",
     )
 
-hello_simple_hc3()
+def unified_hc3_human():
+    documents = []
+    file_name = 'hc3_human'
+    with jsonlines.open(os.path.join("input_prompts", f"unified_{file_name}.jsonl"), mode='r') as reader:
+        for idx, item in enumerate(reader):
+            if idx:
+                json = {}
+                # Extract each section between <human> and <bot>
+                result = re.search(r'(?<=<human>:).*?(?=<bot>)', item["text"], re.DOTALL)
+
+                json[f"turn_0_question"] = result.group(0).strip()
+                documents.append(json)
+
+        # atlas.map_text(
+        #     data=documents,
+        #     indexed_field='turn_0_question',
+        #     name=f"{file_name} v1 prompts",
+        #     description=f'{file_name} map exploration',
+        #     # shard_size=100,
+        #     # organization_name="GPT4ALL"
+        # )
+    
+        with jsonlines.open("input_prompts/unified_hc3_human_cleaned.jsonl", mode="a") as writer:
+            for doc in json:
+                writer.write(doc)
+
+def unified_hc3_human_output():
+    documents = []
+    file_name = 'output_data/output-unified_hc3_human.jsonl'
+    with jsonlines.open(os.path.join(file_name), mode='r') as reader:
+        for idx, item in enumerate(reader):
+            del item['model_settings']
+            documents.append(item)
+
+    atlas.map_text(
+        data=documents,
+        indexed_field='turn_0_answer',
+        name='hc3 human map v1',
+    )
+
+def unified_unifigedsgk_output():
+    documents = []
+    file_name = 'output_data/output-unified_unifiedskg_instructions.jsonl'
+    with jsonlines.open(os.path.join(file_name), mode='r') as reader:
+        for idx, item in enumerate(reader):
+            del item['model_settings']
+            documents.append(item)
+
+    with jsonlines.open('output_data/Chis_unifiedsgk_4-4-23.jsonl', mode='r') as reader:
+        for item in reader:
+            json = {}
+            json["turn_0_question"] = item["prompt"]
+            json["turn_0_answer"] = item["response"]
+
+            documents.append(json)
+
+    with jsonlines.open("output_data/output_unified_unifiedskg", mode="a") as writer:
+        for doc in documents:
+            writer.write(doc)
+
+    exit()
+    atlas.map_text(
+        data=documents,
+        indexed_field='turn_0_answer',
+        name='unified skg map outputs v1',
+    )
+
+def ultimate_mapper():
+    documents = []
+    folder_path = 'output_data/prompt-scrape-run-v2/prompt-scrape-run-v2/'
+    for file in glob.glob(os.path.join(folder_path, "*.jsonl")):
+        with jsonlines.open(file, mode='r') as reader:
+            for item in reader:
+                if "model_settings" in item.keys():
+                    del item["model_settings"]
+                documents.append(item)
+
+    atlas.map_text(
+        data=documents,
+        indexed_field='turn_0_answer',
+        name='current generation state v1'
+    )
+ 
+ultimate_mapper()
