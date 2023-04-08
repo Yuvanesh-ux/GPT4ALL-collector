@@ -17,7 +17,7 @@ NOUN = ['apple', 'chair', 'dog', 'book', 'sun', 'mountain', 'ocean', 'phone', 'c
 NOUN = list(set(NOUN))
 ADJECTIVE = ['abandoned', 'able', 'absolute', 'adorable', 'adventurous', 'academic', 'acceptable', 'acclaimed', 'accomplished', 'accurate', 'aching', 'acidic', 'acrobatic', 'adorable', 'adventurous', 'affectionate', 'afraid', 'aged', 'aggressive', 'agile', 'agreeable', 'ajar', 'alarmed', 'alarming', 'alert', 'alienated', 'alive', 'all', 'alleged', 'amused', 'angry', 'annoyed', 'anxious', 'apprehensive', 'arbitrary', 'arrogant', 'artistic', 'ashamed', 'assertive', 'astonishing', 'athletic', 'attractive', 'average', 'awesome', 'awful', 'awkward', 'azure', 'babyish', 'back', 'bad', 'bare', 'barren', 'bashful', 'beautiful', 'belated', 'beneficial', 'better', 'bewitched', 'big', 'billowing', 'bitter', 'black', 'bland', 'blank', 'blaring', 'bleak', 'blind', 'blissful', 'blond', 'blue', 'blushing', 'bold', 'bored', 'boring', 'bouncy', 'brave', 'brief', 'bright', 'brilliant', 'brisk', 'broken', 'bronze', 'brown', 'bruised', 'bubbly', 'bulky', 'bumpy', 'buoyant', 'burdensome', 'burly', 'bustling', 'busy', 'buttery', 'buzzing', 'calm', 'candid', 'canine', 'capital', 'carefree', 'careful', 'careless', 'caring', 'cautious', 'cavernous', 'celebrated', 'charming', 'cheap', 'cheerful', 'cheery', 'chief', 'chilly', 'chubby', 'circular', 'classic', 'clean', 'clear', 'clever', 'close', 'closed', 'cloudy', 'clueless', 'clumsy', 'cluttered', 'coarse', 'cold', 'colorful', 'colorless', 'colossal', 'comfortable', 'common', 'compassionate', 'competent', 'complete', 'complex', 'complicated', 'composed', 'concerned', 'concrete', 'confused', 'conscious', 'considerate', 'constant', 'content', 'conventional', 'cooked', 'cool', 'cooperative', 'coordinated', 'corny', 'corrupt', 'costly', 'courageous', 'courteous', 'crafty', 'crazy', 'creamy', 'creative', 'creepy', 'criminal', 'crisp', 'critical', 'crooked', 'crowded', 'cruel', 'crushing', 'cuddly', 'cultivated', 'cultured', 'cumbersome', 'curly', 'curvy', 'cute', 'cylindrical', 'damaged', 'damp', 'dangerous', 'dapper', 'daring', 'dark', 'darling', 'dazzling', 'dead', 'deadly', 'deafening', 'dear', 'dearest', 'decent', 'decimal', 'decisive', 'deep', 'defenseless', 'defensive', 'defiant', 'deficient', 'definite', 'definitive', 'delayed', 'delectable', 'delicious', 'delightful', 'delirious', 'demanding', 'dense', 'dental', 'dependable', 'dependent', 'descriptive', 'deserted', 'detailed', 'determined', 'devoted', 'different', 'difficult', 'digital', 'diligent', 'dim', 'dimpled', 'dimwitted', 'direct', 'disastrous', 'discrete', 'disfigured', 'disgusting', 'disloyal', 'dismal', 'distant', 'distant', 'distinct', 'distorted', 'dizzy', 'dopey', 'doting', 'double', 'downright', 'drab', 'draconian', 'dramatic', 'dreary', 'droopy', 'dry', 'dual', 'dull', 'dutiful', 'eager', 'earnest', 'early', 'easy', 'easy-going', 'ecstatic', 'edible', 'educated', 'elaborate', 'elastic', 'elated', 'elderly', 'electric', 'elegant', 'elementary', 'elliptical', 'emaciated', 'embarrassed', 'embellished', 'eminent', 'emotional', 'empty', 'enchanted', 'enchanting', 'energetic', 'enlightened', 'enormous', 'enraged', 'entertaining', 'enthusiastic', 'enviable', 'equal', 'equatorial', 'essential', 'esteemed', 'ethereal', 'ethical', 'euphoric', 'even', 'evergreen', 'everlasting', 'every', 'evil', 'exalted', 'excellent', 'exemplary', 'exhausted', 'excitable', 'excited', 'exciting', 'exotic', 'expensive', 'experienced', 'expert', 'extraneous', 'extroverted', 'fabulous', 'failing', 'faint', 'fair', 'faithful', 'fake', 'false', 'familiar', 'famous', 'fancy', 'fantastic', 'far', 'faraway', 'fast', 'fat', 'fatal', 'fatherly', 'favorable', 'favorite', 'fearful', 'fearless', 'feisty', 'feline', 'female', 'feminine', 'few', 'fickle', 'filthy', 'fine', 'finished', 'firm', 'first', 'firsthand', 'fitting', 'fixed', 'flaky', 'flamboyant', 'flashy', 'flat', 'flawed', 'flawless', 'flickering', 'flimsy', 'flippant', 'flowery', 'fluffy', 'fluid', 'flustered', 'focused', 'fond', 'foolhardy', 'foolish', 'forceful', 'forked', 'formal', 'forsaken', 'forthright', 'fortunate', 'fragrant', 'frail', 'frank', 'frayed', 'free', 'French', 'fresh', 'frequent', 'friendly', 'frightened', 'frightening', 'frigid', 'frilly', 'frivolous', 'frizzy', 'frosty', 'frozen', 'frugal', 'fruitful', 'full', 'fumbling', 'functional', 'funny', 'fussy', 'fuzzy', 'gargantuan', 'gaseous', 'general', 'generous']
 
-sentences = []
+
 documents = []
 def random_subsample(array_in):
     max_items = 12
@@ -27,6 +27,7 @@ def random_subsample(array_in):
 
     return array_in
 for idx, genre in enumerate(['Essay', 'Poem', 'Song']):
+    sentences = []
     for combo in tqdm(itertools.product(random_subsample(PERSONS), random_subsample(PLACES), [genre], random_subsample(AUTHOR), random_subsample(NOUN), random_subsample(ADJECTIVE))):
         modifier = ""
         randint = random.randint(0, 2)
@@ -164,7 +165,8 @@ for idx, genre in enumerate(['Essay', 'Poem', 'Song']):
 
 
 #Generating Rap battles seperately due to the different prompt formats
-for combo in tqdm(itertools.product(random_subsample(PERSONS), random_subsample(PERSONS), ['Rap Battle'], random_subsample(AUTHOR), random_subsample(NOUN), random_subsample(ADJECTIVE))):
+rap_sentences = []
+for combo in tqdm(itertools.product(PERSONS, PERSONS, ['Rap Battle'], random_subsample(ADJECTIVE))):
         modifier = ""
         randint = random.randint(0, 2)
         if randint == 0:
@@ -172,10 +174,11 @@ for combo in tqdm(itertools.product(random_subsample(PERSONS), random_subsample(
         elif random.randint == 1:
             modifier = "short "
             
-        sentence = f"Craft a {modifier}{combo[2]} between {combo[0]} and {combo[1]}"
-        sentences.append(sentence)
+        sentence = f"Craft a {modifier}{combo[2]} between {combo[3]}{combo[0]} and {combo[1]}"
+        rap_sentences.append(sentence)
 
-unique_sentences = list(set(sentences))
+
+unique_sentences = list(set(rap_sentences))
 print(f"There are {len(unique_sentences)} unique combinations.")
 print(unique_sentences[:5])
 
@@ -189,7 +192,8 @@ for doc in new_docs:
     documents.append(doc)
 
 #Generating Emails seperately due to different prompt formats
-for combo in tqdm(itertools.product(random_subsample(PERSONS), random_subsample(PERSONS), ['Email'], random_subsample(AUTHOR), random_subsample(NOUN), random_subsample(ADJECTIVE))):
+email_sentences = []
+for combo in tqdm(itertools.product(PERSONS, PERSONS, ['Email'])):
         modifier = ""
         randint = random.randint(0, 2)
         if randint == 0:
@@ -198,9 +202,20 @@ for combo in tqdm(itertools.product(random_subsample(PERSONS), random_subsample(
             modifier = "short "
             
         sentence = f"Craft a {modifier}{combo[2]} between {combo[0]} and {combo[1]}"
-        sentences.append(sentence)
+        email_sentences.append(sentence)
 
-unique_sentences = list(set(sentences))
+for combo in tqdm(itertools.product(random_subsample(PERSONS), random_subsample(PLACES), ['Email'], random_subsample(AUTHOR), random_subsample(NOUN), random_subsample(ADJECTIVE))):
+        modifier = ""
+        randint = random.randint(0, 2)
+        if randint == 0:
+            modifier = "long "
+        elif random.randint == 1:
+            modifier = "short "
+            
+        sentence = f"Make an {modifier}{combo[2]} addressed to {combo[0]} that address these three points: {combo[3]} {combo[4]} {combo[1]}"
+        email_sentences.append(sentence)
+
+unique_sentences = list(set(email_sentences))
 print(f"There are {len(unique_sentences)} unique combinations.")
 print(unique_sentences[:5])
 
@@ -218,6 +233,6 @@ documents = [{"00": doc, "00_len": len(doc)} for doc in documents]
 atlas.map_text(
     data=documents,
     indexed_field='00',
-    name='generated creative dataset v9',
+    name='generated creative dataset v10',
     reset_project_if_exists=True,
 )
