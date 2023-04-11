@@ -29,5 +29,5 @@ with open(args.input_file, "r") as input_file:
             prompt = prompt.strip()
 
             # create a new object with the processed data and add it to the output file
-            output_obj = {"prompt": prompt, "source": source}
+            output_obj = {"00": prompt, "source": source}
             output_data.write(output_obj)
