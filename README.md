@@ -29,9 +29,9 @@ OIG project for instance - https://huggingface.co/datasets/laion/OIG/tree/main
 1. Create your own file with input prompts. Here is an example of an input file that will work out of the box with the scraper.py without modification:
 
 ```
-{"prompt": "Can you write me a poem about kenneth fearing, aphrodite and jubal fearing in the style of KENNETH FEARING?", "source": "OIG - unified_poetry_instructions.jsonl"}
-{"prompt": "Can you write me a poem about wallace stevens and alfred a. knopf?", "source": "OIG - unified_poetry_instructions.jsonl"}
-{"prompt": "Can you write me a poem about time?", "source": "OIG - unified_poetry_instructions.jsonl"}
+{"00": "Can you write me a poem about kenneth fearing, aphrodite and jubal fearing in the style of KENNETH FEARING?", "source": "OIG - unified_poetry_instructions.jsonl"}
+{"00": "Can you write me a poem about wallace stevens and alfred a. knopf?", "source": "OIG - unified_poetry_instructions.jsonl"}
+{"00": "Can you write me a poem about time?", "source": "OIG - unified_poetry_instructions.jsonl"}
 ```
 Other file formats will require either conversion to this format or modifications to scraper.py to accomodate your own custom format.
 
