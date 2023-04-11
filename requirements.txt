@@ -4,3 +4,4 @@ jsonlines
 python-dotenv
 tqdm
 loguru
+nomic
