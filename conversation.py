@@ -40,7 +40,7 @@ class Conversation:
             Any exceptions thrown by the OpenAIChat model.
 
         """
-        prompts = [d['prompt'] for d in all_prompts[i : i + shard_size]]
+        prompts = all_prompts[i : i + shard_size]
         model = OpenAIChat(
             model_name="gpt-3.5-turbo",
             openai_api_key=self.openai_api_keys[random.randint(0, len(self.openai_api_keys) - 1)],
