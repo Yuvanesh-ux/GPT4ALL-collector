@@ -105,28 +105,29 @@ class Conversation:
                 progress.update(1)
 
 if __name__ == "__main__":
-    # Parse command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_file", help="Input file name")
-    parser.add_argument("output_file", help="Output file name")
+    parser.add_argument("input_file", help="file path of the input file")
+    parser.add_argument("output_file", help="file path of the output file")
     parser.add_argument("-k", "--openai_api_key", help="OpenAI API key")
     args = parser.parse_args()
 
-    # Get the OpenAI API key
-    openai_api_key = args.openai_api_key or os.environ.get("OPENAI_API_KEY")
+    if args.open_api_key:
+        open_api_keys = [args.open_api_key]
+    elif:
+        num_of_keys = 25
+        open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
+    else:
+        print("You need an api key!")
+        exit()
 
-    # Create a Conversation instance
-    conversation = Conversation(openai_api_keys=[openai_api_key])
+    converse = Conversation(open_api_keys)
 
-    # Read the input prompts
-    all_data = []
-    with jsonlines.open(args.input_file, mode="r") as reader:
-        for datum in reader:
-            prompt = datum['prompt']
-            all_data.append({"prompt": prompt})
+    documents = []
+    with jsonlines.open(args.input_file, mode='r') as reader:
+        for item in reader:
+            prompt = item["00"]
+            documents.append(prompt)
+    
+    converse.collector(all_prompts=documents, output_path=args.output_file)
 
-    # Scrape the prompts
-    conversation.conversation_collector(
-        all_prompts=all_data,
-        output_path=args.output_file
-    )
+    

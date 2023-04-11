@@ -4,12 +4,7 @@ import concurrent.futures
 import os
 import random
 from typing import List
-import queue
-import threading
-
-threads_to_start = 20 # or choose how many you want
-my_queue = queue.Queue()
-
+import argparse
 
 import jsonlines
 from dotenv import load_dotenv
@@ -58,7 +53,7 @@ class Scraper:
             output = model(prompt)
             with jsonlines.open(output_path, mode="a") as writer:
                 try:
-                    json_data = {"prompt": prompt, "response": output, "model_settings": model_settings, "source": source}
+                    json_data = {"turn_0_question": prompt, "turn_0_answer": output, "model_settings": model_settings, "source": source}
                     writer.write(json_data)
                 except (KeyboardInterrupt, ValueError, IndexError):
                     logger.warning("Something went wrong with this prompt! Skipping to next one")
@@ -109,15 +104,30 @@ if __name__ == "__main__":
     # Create a Scraper instance
     scraper = Scraper(openai_api_keys=[openai_api_key])
 
-    # Read the input prompts
-    all_data = []
-    with jsonlines.open(args.input_file, mode="r") as reader:
-        for datum in reader:
-            prompt = datum['prompt']
-            all_data.append({"prompt": prompt})
+                progress.update(1)
 
-    # Scrape the prompts
-    scraper.collector(
-        all_prompts=all_data,
-        output_path=args.output_file
-    )
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file", help="file path of the input file")
+    parser.add_argument("output_file", help="file path of the output file")
+    parser.add_argument("-k", "--openai_api_key", help="OpenAI API key")
+    args = parser.parse_args()
+
+    if args.open_api_key:
+        open_api_keys = [args.open_api_key]
+    elif:
+        num_of_keys = 25
+        open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
+    else:
+        print("You need an api key!")
+        exit()
+
+    scraper = Scraper(open_api_keys)
+
+    documents = []
+    with jsonlines.open(args.input_file, mode='r') as reader:
+        for item in reader:
+            prompt = item["00"]
+            documents.append(prompt)
+    
+    scraper.collector(all_prompts=documents, output_path=args.output_file)

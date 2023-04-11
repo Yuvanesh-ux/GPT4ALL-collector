@@ -1,4 +1,4 @@
-.env
-output_data/
 input_prompts/
-venv/
+output_data/
+env/
+.env
