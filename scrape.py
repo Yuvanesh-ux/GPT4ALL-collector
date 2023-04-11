@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     if args.open_api_key:
         open_api_keys = [args.open_api_key]
-    elif:
+    elif os.environ["OPENAI_API_KEY1"]:
         num_of_keys = 25
         open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
     else:
