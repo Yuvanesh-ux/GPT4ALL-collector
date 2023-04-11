@@ -1,1 +1,4 @@
+prompt_scrape/input_prompts/
+prompt_scrape/output_data/
+prompt_scrape/env/
 .env

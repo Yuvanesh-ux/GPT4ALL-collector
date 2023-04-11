@@ -3,3 +3,4 @@ openai
 jsonlines
 python-dotenv
 tqdm
+loguru

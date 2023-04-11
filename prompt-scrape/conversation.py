@@ -101,13 +101,29 @@ class Conversation:
                 progress.update(1)
 
 if __name__ == "__main__":
-    conversation = Conversation([os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, 26)])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file", help="file path of the input file")
+    parser.add_argument("output_file", help="file path of the output file")
+    parser.add_argument("-k", "--openai_api_key", help="OpenAI API key")
+    args = parser.parse_args()
+
+    if args.open_api_key:
+        open_api_keys = [args.open_api_key]
+    elif:
+        num_of_keys = 25
+        open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
+    else:
+        print("You need an api key!")
+        exit()
+
+    converse = Conversation(open_api_keys)
 
     documents = []
-    with jsonlines.open('input_prompts/unified_multi_news_cleaned.jsonl', mode='r') as reader:
+    with jsonlines.open(args.input_file, mode='r') as reader:
         for item in reader:
-            documents.append(item["turn_0_question"])
+            prompt = item["00"]
+            documents.append(prompt)
     
-    conversation.conversation_collector(all_prompts=documents[5:10], output_path='/mnt/efs/data/prompt-scrape-run-v2/unified_multi_news_output-0-50_000.jsonl', source='unified_multi_news')
+    converse.collector(all_prompts=documents, output_path=args.output_file)
 
     
