@@ -19,7 +19,7 @@ print(f"processing {len(data)} items")
 
 # index the prompt field using atlas.map_text()
 project = atlas.map_text(data=data,
-                         indexed_field="prompt",
+                         indexed_field="00",
                          name=args.input_file,
                          colorable_fields=["source"]
                         )
