@@ -130,4 +130,3 @@ if __name__ == "__main__":
     
     converse.collector(all_prompts=documents, output_path=args.output_file)
 
-    
