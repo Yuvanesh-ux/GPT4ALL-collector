@@ -56,10 +56,10 @@ class Conversation:
                     turn_2_context = prompt + turn_1
                     turn_2 = model(turn_2_context + question_2)
                     json_data = {
-                        "prompt": prompt,
-                        "response_turn_1": turn_1,
-                        "prompt_turn_2": question_2,
-                        "response_turn_2": turn_2,
+                        "00": prompt,
+                        "01": turn_1,
+                        "02": question_2,
+                        "03": turn_2,
                         "source": source,
                     }
                     writer.write(json_data)
