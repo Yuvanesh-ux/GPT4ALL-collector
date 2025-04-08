@@ -145,3 +145,44 @@ if __name__ == "__main__":
                 logger.exception(f"Error processing prompt: {str(e)}. Skipping.")
     
     scraper.collector(all_prompts=documents, output_path=args.output_file)
+                    future.result()
+                except Exception as e:
+                    logger.exception(f"Error processing prompt: {e}")
+
+                progress.update(1)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file", help="file path of the input file")
+    parser.add_argument("output_file", help="file path of the output file")
+    parser.add_argument("-k", "--openai_api_key", help="OpenAI API key")
+    args = parser.parse_args()
+
+    if args.openai_api_key:
+        open_api_keys = [args.openai_api_key]
+    elif os.environ["OPENAI_API_KEY1"]:
+        num_of_keys = 25
+        open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
+    else:
+        print("You need an api key!")
+        exit()
+
+    scraper = Scraper(open_api_keys)
+
+    documents = []
+    with jsonlines.open(args.input_file, mode='r') as reader:
+        for item in reader:
+            try:
+                if "00" not in item:
+                    logger.warning("Missing prompt key in item. Skipping.")
+                    continue
+                
+                raw_prompt = item["00"]
+                sanitized_prompt = scraper.sanitize_prompt(raw_prompt)
+                documents.append(sanitized_prompt)
+            except ValueError as e:
+                logger.warning(f"Invalid prompt: {str(e)}. Skipping.")
+            except Exception as e:
+                logger.exception(f"Error processing prompt: {str(e)}. Skipping.")
+    
+    scraper.collector(all_prompts=documents, output_path=args.output_file)
