@@ -17,6 +17,37 @@ class Scraper:
     def __init__(self, openai_api_keys: List[str]):
         self.openai_api_keys = openai_api_keys
 
+    def sanitize_prompt(self, prompt) -> str:
+        """
+        Sanitize an input prompt to prevent adversarial manipulation.
+        
+        Args:
+            prompt: The prompt to sanitize.
+            
+        Returns:
+            str: The sanitized prompt.
+            
+        Raises:
+            ValueError: If the prompt is invalid.
+        """
+        # Check if the prompt is a string
+        if not isinstance(prompt, str):
+            raise ValueError("Prompt must be a string.")
+        
+        # Check if the prompt is empty
+        if not prompt.strip():
+            raise ValueError("Prompt cannot be empty.")
+        
+        # Remove potential control characters, which could be used for manipulation
+        prompt = ''.join(char for char in prompt if ord(char) >= 32 or char in '\n\t')
+        
+        # Limit the length of the prompt to prevent excessive large inputs
+        max_prompt_length = 4096  # Common limit for LLM APIs
+        if len(prompt) > max_prompt_length:
+            prompt = prompt[:max_prompt_length]
+            
+        return prompt
+
     def get_responses(
         self, 
         all_prompts: List[dict], 
@@ -86,8 +117,8 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--openai_api_key", help="OpenAI API key")
     args = parser.parse_args()
 
-    if args.open_api_key:
-        open_api_keys = [args.open_api_key]
+    if args.openai_api_key:
+        open_api_keys = [args.openai_api_key]
     elif os.environ["OPENAI_API_KEY1"]:
         num_of_keys = 25
         open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
@@ -100,7 +131,17 @@ if __name__ == "__main__":
     documents = []
     with jsonlines.open(args.input_file, mode='r') as reader:
         for item in reader:
-            prompt = item["00"]
-            documents.append(prompt)
+            try:
+                if "00" not in item:
+                    logger.warning("Missing prompt key in item. Skipping.")
+                    continue
+                
+                raw_prompt = item["00"]
+                sanitized_prompt = scraper.sanitize_prompt(raw_prompt)
+                documents.append(sanitized_prompt)
+            except ValueError as e:
+                logger.warning(f"Invalid prompt: {str(e)}. Skipping.")
+            except Exception as e:
+                logger.exception(f"Error processing prompt: {str(e)}. Skipping.")
     
     scraper.collector(all_prompts=documents, output_path=args.output_file)
