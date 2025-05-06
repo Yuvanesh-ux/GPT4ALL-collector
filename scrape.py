@@ -53,7 +53,7 @@ class Scraper:
         all_prompts: List[dict], 
         i: int, 
         shard_size: int,
-        model_settings: dict = {"max_tokens": -1},
+        model_settings: dict = {"max_tokens": 1024},
         output_path: str = '',
         source: str = ''
     ):
@@ -64,7 +64,7 @@ class Scraper:
             contain the 'text' key with a string value representing the prompt.
             i (int): An integer representing the starting index of the prompts to use in the all_prompts list.
             shard_size (int): An integer representing the number of prompts to generate responses for in each iteration.
-            model_settings (dict, optional): A dictionary of settings to pass to the OpenAIChat model. Defaults to {"max_tokens": -1}.
+            model_settings (dict, optional): A dictionary of settings to pass to the OpenAIChat model. Defaults to {"max_tokens": 1024}.
             output_path (str, optional): The path to the directory to write the generated responses to. Defaults to an empty string.
             source (str, optional): A string representing the source of the prompts. Defaults to an empty string.
 
@@ -73,16 +73,24 @@ class Scraper:
 
         """
         prompts = all_prompts[i : i + shard_size]
+        # Security: enforce a safe max_tokens
+        max_allowed_tokens = 4096  # LLM typical upper bound
+        # pick max_tokens: prefer value from model_settings only if it's safe
+        max_tokens = model_settings.get("max_tokens", 1024)
+        if not isinstance(max_tokens, int) or max_tokens <= 0 or max_tokens > max_allowed_tokens:
+            logger.warning(f"Invalid or unsafe max_tokens param ({max_tokens}), defaulting to 1024")
+            max_tokens = 1024
+
         model = OpenAIChat(
             model_name="gpt-3.5-turbo",
             openai_api_key=self.openai_api_keys[random.randint(0, len(self.openai_api_keys) - 1)],
-            model_kwargs={"max_tokens": -1}, # -1 specifies we want the maximum number of tokens that can be generated
+            model_kwargs={"max_tokens": max_tokens},
         )
         for prompt in tqdm(prompts):
             output = model(prompt)
             with jsonlines.open(output_path, mode="a") as writer:
                 try:
-                    json_data = {"00": prompt, "01": output, "model_settings": model_settings, "source": source, "00_len": len(prompt), "01_len": len(output)}
+                    json_data = {"00": prompt, "01": output, "model_settings": {"max_tokens": max_tokens}, "source": source, "00_len": len(prompt), "01_len": len(output)}
                     writer.write(json_data)
                 except (KeyboardInterrupt, ValueError, IndexError):
                     logger.warning("Something went wrong with this prompt! Skipping to next one")
@@ -119,7 +127,7 @@ if __name__ == "__main__":
 
     if args.openai_api_key:
         open_api_keys = [args.openai_api_key]
-    elif os.environ["OPENAI_API_KEY1"]:
+    elif os.environ.get("OPENAI_API_KEY1"):
         num_of_keys = 25
         open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
     else:
