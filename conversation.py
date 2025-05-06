@@ -11,12 +11,23 @@ from langchain.llms import OpenAIChat
 from loguru import logger
 from tqdm import tqdm
 
+# Constants for safety limits
+MAX_PROMPT_LENGTH = 2000  # Maximum allowed prompt length in characters
+MAX_RESPONSE_TOKENS = 512  # Safe maximum tokens to generate in a response
+
 #store your api keys in a env file
 load_dotenv()
 
 class Conversation:
     def __init__(self, openai_api_keys: List[str]) -> None:
         self.openai_api_keys = openai_api_keys
+
+    def truncate_prompt(self, prompt: str) -> str:
+        """Truncate prompt to MAX_PROMPT_LENGTH characters."""
+        if len(prompt) > MAX_PROMPT_LENGTH:
+            logger.warning(f"Prompt length {len(prompt)} exceeds maximum {MAX_PROMPT_LENGTH} and will be truncated.")
+            return prompt[:MAX_PROMPT_LENGTH]
+        return prompt
 
     def get_responses(self, 
         all_prompts: List[str], 
@@ -44,17 +55,22 @@ class Conversation:
         model = OpenAIChat(
             model_name="gpt-3.5-turbo",
             openai_api_key=self.openai_api_keys[random.randint(0, len(self.openai_api_keys) - 1)],
-            model_kwargs={"max_tokens": -1}, # -1 specifies we want the maximum number of tokens that can be generated
+            model_kwargs={"max_tokens": MAX_RESPONSE_TOKENS},
         )
 
         for prompt in tqdm(prompts):
+            prompt = self.truncate_prompt(prompt)
             with jsonlines.open(output_path, mode="a") as writer:
                 try:
                     turn_1 = model(prompt)
                     follow_up_prompt = "Write an insightful follow up question given the previous context: "
-                    question_2 = model(follow_up_prompt + prompt + turn_1)
-                    turn_2_context = prompt + turn_1
-                    turn_2 = model(turn_2_context + question_2)
+                    composed_prompt_q2 = follow_up_prompt + prompt + (turn_1 if turn_1 else "")
+                    composed_prompt_q2 = self.truncate_prompt(composed_prompt_q2)
+                    question_2 = model(composed_prompt_q2)
+                    turn_2_context = prompt + (turn_1 if turn_1 else "")
+                    composed_prompt_t2 = turn_2_context + (question_2 if question_2 else "")
+                    composed_prompt_t2 = self.truncate_prompt(composed_prompt_t2)
+                    turn_2 = model(composed_prompt_t2)
                     json_data = {
                         "00": prompt,
                         "01": turn_1,
@@ -63,7 +79,7 @@ class Conversation:
                         "source": source,
                     }
                     writer.write(json_data)
-                except:
+                except Exception:
                     logger.warning("something went wrong! next")
                     with jsonlines.open(f"{output_path}_fails.jsonl", mode="a") as writer:
                         writer.write(prompt)
@@ -111,14 +127,18 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--openai_api_key", help="OpenAI API key")
     args = parser.parse_args()
 
-    if args.open_api_key:
-        open_api_keys = [args.open_api_key]
-    elif:
-        num_of_keys = 25
-        open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
+    if args.openai_api_key:
+        open_api_keys = [args.openai_api_key]
     else:
-        print("You need an api key!")
-        exit()
+        num_of_keys = 25
+        open_api_keys = []
+        for i in range(1, num_of_keys + 1):
+            key = os.environ.get(f'OPENAI_API_KEY{i}')
+            if key:
+                open_api_keys.append(key)
+        if not open_api_keys:
+            print("You need an api key!")
+            exit()
 
     converse = Conversation(open_api_keys)
 
@@ -128,5 +148,4 @@ if __name__ == "__main__":
             prompt = item["00"]
             documents.append(prompt)
     
-    converse.collector(all_prompts=documents, output_path=args.output_file)
-
+    converse.conversation_collector(all_prompts=documents, output_path=args.output_file)
