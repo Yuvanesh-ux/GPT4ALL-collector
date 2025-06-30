@@ -111,9 +111,9 @@ if __name__ == "__main__":
     parser.add_argument("-k", "--openai_api_key", help="OpenAI API key")
     args = parser.parse_args()
 
-    if args.open_api_key:
-        open_api_keys = [args.open_api_key]
-    elif:
+    if args.openai_api_key:
+        open_api_keys = [args.openai_api_key]
+    elif not args.openai_api_key:
         num_of_keys = 25
         open_api_keys = [os.environ[f'OPENAI_API_KEY{i}'] for i in range(1, num_of_keys + 1)]
     else:
@@ -128,5 +128,5 @@ if __name__ == "__main__":
             prompt = item["00"]
             documents.append(prompt)
     
-    converse.collector(all_prompts=documents, output_path=args.output_file)
+    converse.conversation_collector(all_prompts=documents, output_path=args.output_file)
 
